@@ -17,13 +17,25 @@ int main()
 
     PIMAGE_NT_HEADERS imageNtHeaders = (PIMAGE_NT_HEADERS)((byte*)libraryPtr + imageDosHeader->e_lfanew);
     if (IMAGE_FILE_MACHINE_AMD64 == imageNtHeaders->FileHeader.Machine) {
-        std::cout << "The DLL is 64 bit";
+        std::cout << "The DLL is 64 bit" << std::endl;
     }
     else if (IMAGE_FILE_MACHINE_I386 == imageNtHeaders->FileHeader.Machine) {
-        std::cout << "The DLL is 32 bit";
+        std::cout << "The DLL is 32 bit" << std::endl;
     }
     else {
-        std::cout << "The DLL is not 64 bit or 32 bit!";
+        std::cout << "The DLL is not 64 bit or 32 bit!" << std::endl;
+    }
+
+    DWORD exportDirectoryRVAPtr = imageNtHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+    PIMAGE_EXPORT_DIRECTORY imageExportDirectory = (PIMAGE_EXPORT_DIRECTORY)((byte*)libraryPtr + exportDirectoryRVAPtr);
+    
+    DWORD functionsCount = imageExportDirectory->NumberOfNames;
+    DWORD* exportFunctionsNamesRVA = (DWORD*)((byte*)libraryPtr + imageExportDirectory->AddressOfNames);
+    char* functionName = nullptr;
+
+    for (int i = 0; i < functionsCount; i++) {
+        functionName = (char*)((byte*)libraryPtr + exportFunctionsNamesRVA[i]);
+        std::cout << "function name " << i << ": " << functionName << std::endl;
     }
 
     FreeLibrary(libraryPtr);
